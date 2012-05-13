@@ -32,25 +32,75 @@ drawGraphicalEquivClasses(equivClasses, outfileName, rowsPerPage=20, colsPerPage
 """
 
 
+# class Schema(object):
+# 	"""Representation of an ER diagram, represented as a networkx.Graph"""
+# 	def __init__(self, ent_attrs, relations):
+# 		self.er = nx.Graph(relations)
+# 		for ent, attrs in ent_attrs.items():
+# 			self.er.node[ent]['attrs'] = attrs
+# 	def getAttrs(self, ent):
+# 		self.er.node['attrs']
 
 
 class PossibleGraphicalGenerator():
 	"""Factory class for generating all possible valid DAGs for a given schema and set of constraints."""
 
-	def __init__(self, entVars, indexVars=None):
-		"""Constructor.  Accepts schema information as a list of (entity, variable) tuples."""
+	def __init__(self, entVars, relationTups):
+		"""Constructor.  Accepts schema information in the form of two lists:
+				entVars: list of (entity, variable) pairs
+				relationTups: list of (s, t, type) triples, where type is one of "1-m", "m-m", "1-1"
+		"""
 		self.entVars = entVars
 		self.dagsOnly = True
 		self.latents = set()
 		self.determines = {}
-		self.indexSet = None if indexVars is None else set(indexVars)
+		self.indexSet = set(entVars)
 		self.edgePossibleSettings = {}
-		for i in self.entVars:
-			for j in self.entVars:
-				if (i < j):
-					edge = (i, j)
-					self.edgePossibleSettings[edge] = [-1, 0, 1]
+		
+		sys.stderr.write("got relations: %s\n" % str(relationTups))
+
+		rel_reltype = dict([ [(s, t), reltype] for s, t, reltype in relationTups ])
+			
+		for entVarS, entVarT in self.getAllVarPairs():
+			sys.stderr.write("checking %s --- %s\n" % (entVarS, entVarT))
+			entS = entVarS[0]
+			entT = entVarT[0]
+
+			rel = (entS, entT)
+			relRev = (entT)
+
+			#sys.stderr.write("%s\t%s\t%s\t%s\n" % ((relations is None), (entS == entT), ((entS, entT) in relations), ((entT, entS) in relations)))
+
+			if (entS == entT) or ((entS, entT) in rel_reltype) or ((entT, entS) in rel_reltype):
+				sys.stderr.write("edge %s --- %s is possible\n" % (entVarS, entVarT))
+				self.edgePossibleSettings[(entVarS, entVarT)] = [0, 1, 2]
+			else:	
+				sys.stderr.write("edge %s --- %s is not possible\n" % (entS, entT))					
+				self.edgePossibleSettings[(entVarS, entVarT)] = [0]
+
+			sys.stderr.write("\n")
 		sys.stderr.write("init:\n" + self.dumpEdgePossibleSettings())
+
+	def getAllVarPairs(self):
+		pairs = []
+		count = len(self.entVars)
+		for s in range(count):
+			entVarS = self.entVars[s]
+			for t in range(s + 1, count):
+				entVarT = self.entVars[t]
+				pairs.append((entVarS, entVarT))
+		return pairs
+
+	
+	def setIndex(self, indexEntVars):
+		self.indexSet = set(indexEntVars)
+		
+	def removeEdgeSetting(self, s, t, setting):
+		edge = (s, t)
+		if (edge in self.edgePossibleSettings):
+			removeIfExists(setting, self.edgePossibleSettings[edge])
+			# if not (self.edgePossibleSettings[edge]):
+			# 	del self.edgePossibleSettings[edge]
 		
 	def edgeFix(self, s, t):
 		"""Add a constraint that a given edge must exist in all DAGs generated."""
@@ -58,41 +108,28 @@ class PossibleGraphicalGenerator():
 		if (edge in self.edgePossibleSettings):
 			self.edgePossibleSettings[edge] = [1]
 		else:
-			edgeRev = (edge[1], edge[0])
-			self.edgePossibleSettings[edgeRev] = [-1]
+			edgeRev = (t, s)
+			self.edgePossibleSettings[edgeRev] = [2]
 			
 	def edgeProhibit(self, s, t, bidir=False):
 		"""Add a constraint that prohibits a given edge in all DAGs generated."""
-		edge = (s, t)
-		if (edge in self.edgePossibleSettings):
-			self.edgePossibleSettings[edge].remove(1)
-			if (bidir):
-				self.edgePossibleSettings[edge].remove(-1)
-		else:
-			edgeRev = (t, s)
-			self.edgePossibleSettings[edgeRev].remove(-1)
-			if (bidir):
-				self.edgePossibleSettings[edgeRev].remove(1)
+		self.removeEdgeSetting(s, t, 1)
+		self.removeEdgeSetting(t, s, 2)
+		if (bidir):
+			self.removeEdgeSetting(s, t, 2)
+			self.removeEdgeSetting(t, s, 1)
 
-	def edgeProhibitAll(self, s, bidir=False):
-		"""Add a constraint that prohibits all edges associated with a vertex."""
-		sys.stderr.write("prohibit all before:\n" + self.dumpEdgePossibleSettings())
+	def edgeProhibitAllFrom(self, s, bidir=False):
+		"""Add a constraint that prohibits all edges originating from vertex s."""
 		edgesPoss = self.edgePossibleSettings
 		for t in self.entVars:
-			edge = (s, t)
-			if (edge in edgesPoss):
-				if (1 in edgesPoss[edge]):
-					edgesPoss[edge].remove(1)
-				if (bidir):
-					if (-1 in edgesPoss[edge]):
-						edgesPoss[edge].remove(-1)
-			edge = (t, s)
-			if (edge in edgesPoss):
-				if (-1 in edgesPoss[edge]):
-					edgesPoss[edge].remove(-1)
-				if (bidir):
-					if (1 in edgesPoss[edge]):
-						edgesPoss[edge].remove(1)
+			self.edgeProhibit(s, t, bidir)
+
+	def edgeProhibitAllTo(self, s):
+		"""Add the constraint that the given variable has not incoming edges."""
+		edgesPoss = self.edgePossibleSettings
+		for t in self.entVars:
+			self.edgeProhibit(t, s, False)
 
 	def makeLatent(self, n):
 		"""Designate an edge as latent, which prevents it from being utilized in any
@@ -109,24 +146,29 @@ class PossibleGraphicalGenerator():
 		"""Workhorse factory method for producing all valid DAGs for this schema and set
 		of constraints."""
 		graphs = []
+
+		sys.stderr.write("gen:\n" + self.dumpEdgePossibleSettings())
+
+		edgesPossible = self.getAllVarPairs()		
 		edgeCombos = factorialDict(self.edgePossibleSettings)
-		edgesPossible = sorted(self.edgePossibleSettings.keys())
-		for edgeCombo in edgeCombos: # edgeCombo is a dict (s, t) -> -1
+		for edgeCombo in edgeCombos: # edgeCombo is a dict (s, t) -> 1
 			graph = nx.DiGraph()
-			graphSig = ""
 			for i, ev in enumerate(self.entVars):
 				lat = True if (ev in self.latents) else False
 				det = self.determines.get(ev, None)
-				graph.add_node(ev, latent=lat, determines=det, order=i) 
-			for edge in edgesPossible: # sorted for indexing
-				setting = edgeCombo[edge]
+				graph.add_node(ev, latent=lat, determines=det, order=i) # order they were passed in is preserved
+
+			graphSig = ""	
+			for s, t in edgesPossible:
+				setting = edgeCombo.get((s, t), 0)
 				if (setting == 1):
-					graph.add_edge(edge[0], edge[1])
-				elif (setting == -1):
-					graph.add_edge(edge[1], edge[0])		
-				if (self.indexSet is None) or ((edge[0] in self.indexSet) and (edge[1] in self.indexSet)):
-					graphSig += str([1, 0, 2][setting + 1]) # translate from [-1, 0, 1] to [1, 0, 2]
+					graph.add_edge(s, t)
+				elif (setting == 2):
+					graph.add_edge(t, s)
+				if (s in self.indexSet) and (t in self.indexSet):
+					graphSig += str(setting)
 			graph.graph['index'] = int(graphSig, 3)
+			
 			if (not self.dagsOnly) or (nx.is_directed_acyclic_graph(graph)):
 				graphs.append(graph)
 		if (len(graphs) < len(edgeCombos)):
@@ -140,133 +182,6 @@ class PossibleGraphicalGenerator():
 			s, t = edge
 			ret += "%s.%s --- %s.%s\t%s\n" % (s[0], s[1], t[0], t[1], str(settings))
 		return ret
-
-
-#
-# Convenience methods for producing common cases.
-#
-
-def possibleOneMany(latentZ=True, indexId=True):
-	varZ = ("A", "Z")
-	varX = ("A", "X")
-	varY = ("B", "Y")
-	index = None if indexId else [varX, varY, varZ]
-	graphGen = PossibleGraphicalGenerator([varX, varZ, varY], index)
-	graphGen.edgeProhibit(varX, varZ, bidir=True)
-	if (latentZ):
-		graphGen.makeLatent(varZ)
-	return graphGen.generate()
-
-def possibleOneManyId(latentZ=True, latentId=False, indexId=True):
-	varId = ("A", "ID")
-	varZ = ("A", "Z")
-	varX = ("A", "X")
-	varY = ("B", "Y")
-	index = None if indexId else [varX, varY, varZ]
-	graphGen = PossibleGraphicalGenerator([varId, varX, varZ, varY], index)
-	graphGen.edgeFix(varId, varX)
-	graphGen.edgeFix(varId, varZ)
-	graphGen.edgeProhibit(varX, varZ, bidir=True)
-	graphGen.edgeProhibit(varId, varY, bidir=True)
-	graphGen.makeDetermines(varX, [varId])
-	graphGen.makeDetermines(varZ, [varId])
-	if (latentZ):
-		graphGen.makeLatent(varZ)
-	if (latentId):
-		graphGen.makeLatent(varId)
-	return graphGen.generate()
-
-def possibleOneManyDegDisp(undirDegFy=False, latentDeg=False):	
-	X = ("A", "X")
-	fY = ("A", "fY")
-	deg = ("A", "deg")
-	Y = ("B", "Y")
-	H = ("A", "H")
-	entvars = [X, deg, H, fY, Y] if undirDegFy else [X, deg, fY, Y]
-	graphGen = PossibleGraphicalGenerator(entvars)
-	graphGen.edgeFix(Y, fY)
-	graphGen.edgeProhibit(X, fY, bidir=True)
-	graphGen.edgeProhibit(Y, deg, bidir=True)
-	graphGen.makeLatent(Y)
-	if (latentDeg):
-		graphGen.makeLatent(deg)		
-	if (undirDegFy):
-		graphGen.edgeProhibit(deg, H, bidir=False)
-		graphGen.edgeProhibit(fY, H, bidir=False)
-		graphGen.edgeProhibit(H, X, bidir=True)
-		graphGen.edgeProhibit(H, Y, bidir=True)
-		graphGen.edgeProhibit(deg, fY, bidir=True)
-		graphGen.makeLatent(H)
-	return graphGen.generate()
-
-def possibleBlocking(linksId=True, latentZ=True, indexId=True):
-	varId = ("A", "id")
-	varZ = ("A", "Z")
-	varX = ("B", "X")
-	varY = ("B", "Y")
-	index = None if indexId else [varX, varY, varZ]
-	graphGen = PossibleGraphicalGenerator([varId, varZ, varX, varY], index)
-	if (latentZ):	
-		graphGen.makeLatent(varZ)
-	if (linksId):
-		graphGen.edgeFix(varId, varZ)
-	else:
-		graphGen.edgeProhibit(varId, varZ, bidir=True)
-	graphGen.edgeProhibit(varId, varX, bidir=True)
-	graphGen.edgeProhibit(varId, varY, bidir=True)
-	graphGen.makeDetermines(varZ, [varId])
-	return graphGen.generate()
-
-def possibleBlockingZH(linksId=True, indexId=True):
-	varId = ("A", "id")
-	varZ = ("A", "Z")
-	varH = ("A", "H")
-	varX = ("B", "X")
-	varY = ("B", "Y")
-	index = None if indexId else [varX, varY, varZ, varH]
-	graphGen = PossibleGraphicalGenerator([varId, varZ, varH, varX, varY], index)
-	graphGen.makeLatent(varH)
-	if (linksId):
-		graphGen.edgeFix(varId, varZ)
-		graphGen.edgeFix(varId, varH)
-	else:
-		graphGen.edgeProhibit(varId, varZ, bidir=True)
-		graphGen.edgeProhibit(varId, varH, bidir=True)
-	graphGen.edgeProhibit(varId, varX, bidir=True)
-	graphGen.edgeProhibit(varId, varY, bidir=True)
-	graphGen.makeDetermines(varZ, [varId])
-	graphGen.makeDetermines(varH, [varId])
-	return graphGen.generate()
-
-def possibleManyMany():
-	varIdA = ("A", "idA")
-	varX = ("A", "X")
-	varZ = ("A", "Z")
-	varIdB = ("B", "idB")
-	varY = ("B", "Y")
-	varW = ("B", "W")
-	graphGen = PossibleGraphicalGenerator([varIdA, varZ, varX, varIdB, varW, varY])
-	graphGen.makeLatent(varZ)
-	graphGen.makeLatent(varW)
-	graphGen.edgeFix(varIdA, varX)
-	graphGen.edgeFix(varIdA, varZ)	
-	graphGen.edgeFix(varIdB, varY)
-	graphGen.edgeFix(varIdB, varW)	
-	graphGen.edgeProhibit(varIdA, varY, bidir=True)
-	graphGen.edgeProhibit(varIdA, varW, bidir=True)
-	graphGen.edgeProhibit(varIdA, varIdB, bidir=True)
-	graphGen.edgeProhibit(varIdB, varX, bidir=True)
-	graphGen.edgeProhibit(varIdB, varZ, bidir=True)
-	graphGen.makeDetermines(varX, [varIdA])
-	graphGen.makeDetermines(varZ, [varIdA])
-	graphGen.makeDetermines(varY, [varIdB])
-	graphGen.makeDetermines(varW, [varIdB])	
-	graphGen.edgeProhibit(varX, varZ, bidir=True)
-	graphGen.edgeProhibit(varY, varW, bidir=True)
-	graphGen.edgeProhibit(varZ, varW, bidir=True)
-	return graphGen.generate()
-
-
 
 
 def condIndys(gDir):
@@ -453,13 +368,6 @@ def getGraphicalEquivClasses(graphs, verbose=False):
 				sys.stderr.write("\t" + str(indy) + "\n")
 		equivClasses.setdefault(independences, []).append(graph)
 	sys.stderr.write("found %d equivalence classes for %d graphs\n" % (len(equivClasses), len(graphs)))
-	if (verbose):
-		equivs = equivClasses.keys()
-		for i, equiv in enumerate(equivs):
-			for condIndy in equiv:
-				for j, equivOther in enumerate(equivs):
-					if condIndy not in equivOther:
-						sys.stderr.write("\tcond indy '%s' is in equiv %d, not in %d\n" % (str(condIndy), i, j))
 	return equivClasses
 
 def filterGraphicalEquivClasses(equivClasses, s, t, condSet, isIndy):
@@ -637,7 +545,7 @@ def drawGraphicalEquivClasses(equivClasses, outfileName, rowsPerPage=4, colsPerP
 			rowCurr = 0
 		rowStart = rowCurr
 		axSubIdx = 1 + rowCurr*(colsPerPage + 2)
-		sys.stderr.write("class %d add_subplot(%d, %d, %d)\n" % (classNum, rowsPerPage, colsPerPage+2, axSubIdx))
+		#sys.stderr.write("class %d add_subplot(%d, %d, %d)\n" % (classNum, rowsPerPage, colsPerPage+2, axSubIdx))
 		axSub = fig.add_subplot(rowsPerPage, colsPerPage + 2, axSubIdx, frameon=False, xticks=[], yticks=[]) 
 		
 		# this is a lot of work to figure out how far down the indy statements should start
@@ -677,7 +585,6 @@ def drawGraphicalEquivClasses(equivClasses, outfileName, rowsPerPage=4, colsPerP
 
 	pdf.close()
 	fig.savefig(outfileName, format="pdf", bbox_inches='tight', pad_inches=0.5)
-	#os.system("open " + outfileName)
 
 
 def indyTups2String(indyTups, indyOnly=False):
@@ -702,6 +609,13 @@ def indyTups2String(indyTups, indyOnly=False):
 # 
 # Misc utility functions
 #
+
+def removeIfExists(elt, lst):
+	try:
+		lst.remove(elt)
+	except ValueError:
+		pass
+	return lst	
 
 def factorialList(*paramLists):	
 	"""Returns all possible combinations of the args given"""
@@ -759,6 +673,148 @@ def romanize(n):
 
 
 
+
+#
+# Convenience methods for producing common cases.
+#
+
+def possibleOneMany(latentZ=True):
+	varZ = ("A", "Z")
+	varX = ("A", "X")
+	varY = ("B", "Y")
+	graphGen = PossibleGraphicalGenerator([varX, varZ, varY], [("A", "B", "1-m")])
+	graphGen.edgeProhibit(varX, varZ, bidir=True)
+	if (latentZ):
+		graphGen.makeLatent(varZ)
+	return graphGen.generate()
+
+def possibleOneManyId(latentZ=True, latentId=False, indexId=True):
+	varId = ("A", "ID")
+	varZ = ("A", "Z")
+	varX = ("A", "X")
+	varY = ("B", "Y")
+	graphGen = PossibleGraphicalGenerator([varId, varX, varZ, varY], [("A", "B", "1-m")])
+	if not (indexId):
+		graphGen.setIndex([varX, varZ, varY])
+	graphGen.edgeFix(varId, varX)
+	graphGen.edgeFix(varId, varZ)
+	graphGen.edgeProhibit(varX, varZ, bidir=True)
+	graphGen.edgeProhibit(varId, varY, bidir=True)
+	graphGen.makeDetermines(varX, [varId])
+	graphGen.makeDetermines(varZ, [varId])
+	if (latentZ):
+		graphGen.makeLatent(varZ)
+	if (latentId):
+		graphGen.makeLatent(varId)
+	return graphGen.generate()
+
+def possibleOneManyDegDisp(undirDegFy=False, latentDeg=False):	
+	X = ("A", "X")
+	fY = ("A", "fY")
+	deg = ("A", "deg")
+	Y = ("B", "Y")
+	H = ("A", "H")
+	entvars = [X, deg, H, fY, Y] if undirDegFy else [X, deg, fY, Y]
+	graphGen = PossibleGraphicalGenerator(entvars, [("A", "B", "1-m")])
+	graphGen.edgeFix(Y, fY)
+	graphGen.edgeProhibit(X, fY, bidir=True)
+	graphGen.edgeProhibit(Y, deg, bidir=True)
+	graphGen.makeLatent(Y)
+	if (latentDeg):
+		graphGen.makeLatent(deg)		
+	if (undirDegFy):
+		graphGen.edgeProhibit(deg, H, bidir=False)
+		graphGen.edgeProhibit(fY, H, bidir=False)
+		graphGen.edgeProhibit(H, X, bidir=True)
+		graphGen.edgeProhibit(H, Y, bidir=True)
+		graphGen.edgeProhibit(deg, fY, bidir=True)
+		graphGen.makeLatent(H)
+	return graphGen.generate()
+
+def possibleBlocking(linksId=True, latentZ=True, indexId=True):
+	varId = ("A", "id")
+	varZ = ("A", "Z")
+	varX = ("B", "X")
+	varY = ("B", "Y")
+	graphGen = PossibleGraphicalGenerator([varId, varZ, varX, varY], [("A", "B", "1-m")])
+	if not (indexId):
+		graphGen.setIndex([varX, varY, varZ])
+	if (latentZ):	
+		graphGen.makeLatent(varZ)
+	if (linksId):
+		graphGen.edgeFix(varId, varZ)
+	else:
+		graphGen.edgeProhibit(varId, varZ, bidir=True)
+	graphGen.edgeProhibit(varId, varX, bidir=True)
+	graphGen.edgeProhibit(varId, varY, bidir=True)
+	graphGen.makeDetermines(varZ, [varId])
+	return graphGen.generate()
+
+def possibleBlockingZH(linksId=True, indexId=True):
+	varId = ("A", "id")
+	varZ = ("A", "Z")
+	varH = ("A", "H")
+	varX = ("B", "X")
+	varY = ("B", "Y")
+	graphGen = PossibleGraphicalGenerator([varId, varZ, varH, varX, varY], [("A", "B", "1-m")])
+	if not (indexId):
+		graphGen.setIndex([varX, varY, varZ, varH])
+	graphGen.makeLatent(varH)
+	if (linksId):
+		graphGen.edgeFix(varId, varZ)
+		graphGen.edgeFix(varId, varH)
+	else:
+		graphGen.edgeProhibit(varId, varZ, bidir=True)
+		graphGen.edgeProhibit(varId, varH, bidir=True)
+	graphGen.edgeProhibit(varId, varX, bidir=True)
+	graphGen.edgeProhibit(varId, varY, bidir=True)
+	graphGen.makeDetermines(varZ, [varId])
+	graphGen.makeDetermines(varH, [varId])
+	return graphGen.generate()
+
+def possibleManyMany():
+	varIdA = ("A", "idA")
+	varX = ("A", "X")
+	varZ = ("A", "Z")
+	varIdB = ("B", "idB")
+	varY = ("B", "Y")
+	varW = ("B", "W")
+	graphGen = PossibleGraphicalGenerator([varIdA, varZ, varX, varIdB, varW, varY], [("A", "B", "m-m")])
+	graphGen.makeLatent(varZ)
+	graphGen.makeLatent(varW)
+	graphGen.edgeFix(varIdA, varX)
+	graphGen.edgeFix(varIdA, varZ)	
+	graphGen.edgeFix(varIdB, varY)
+	graphGen.edgeFix(varIdB, varW)	
+	graphGen.edgeProhibit(varIdA, varY, bidir=True)
+	graphGen.edgeProhibit(varIdA, varW, bidir=True)
+	graphGen.edgeProhibit(varIdA, varIdB, bidir=True)
+	graphGen.edgeProhibit(varIdB, varX, bidir=True)
+	graphGen.edgeProhibit(varIdB, varZ, bidir=True)
+	graphGen.makeDetermines(varX, [varIdA])
+	graphGen.makeDetermines(varZ, [varIdA])
+	graphGen.makeDetermines(varY, [varIdB])
+	graphGen.makeDetermines(varW, [varIdB])	
+	graphGen.edgeProhibit(varX, varZ, bidir=True)
+	graphGen.edgeProhibit(varY, varW, bidir=True)
+	graphGen.edgeProhibit(varZ, varW, bidir=True)
+	return graphGen.generate()
+
+def possibleJournalAuthorPaper():	
+	journForm = ("2 Journal", "F")
+	#journPrest = ("Journal", "P")
+	papLen = ("1 Paper", "L")
+	#papCites = ("Paper", "C")
+	authHapp = ("0 Author", "H")
+	#variables = [ journForm, journPrest, papLen, papCites, authHapp ]
+
+	variables = [ journForm, papLen, authHapp ]
+
+	relations = [("2 Journal", "1 Paper"), ("1 Paper", "0 Author")]
+	graphGen = PossibleGraphicalGenerator(variables, relations)	
+	#graphGen.makeExogenous(journForm)
+	return graphGen.generate()
+
 		
 ###################################################
 
@@ -766,9 +822,11 @@ if (__name__ == '__main__'):
 
 	outfileName = sys.argv[1]
 	possibleGraphs = possibleOneManyId(latentZ=True, latentId=False, indexId=False)
+	#possibleGraphs = possibleJournalAuthorPaper()
 	
 	equivClasses = getGraphicalEquivClasses(possibleGraphs, True)
 	drawGraphicalEquivClasses(equivClasses, outfileName, rowsPerPage=20, colsPerPage=4, pageWidth=16, pageHeight=50)
+	os.system("open " + outfileName)
 	
 
 
