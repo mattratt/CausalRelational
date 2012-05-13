@@ -1,0 +1,108 @@
+
+<!doctype html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module MarkovEquivalence</title>
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>MarkovEquivalence</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/Users/rattigan/aeolus/graphicals/MarkovEquivalence.py">/Users/rattigan/aeolus/graphicals/MarkovEquivalence.py</a></font></td></tr></table>
+    <p></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="math.html">math</a><br>
+<a href="matplotlib.patches.html">matplotlib.patches</a><br>
+</td><td width="25%" valign=top><a href="networkx.html">networkx</a><br>
+<a href="os.html">os</a><br>
+</td><td width="25%" valign=top><a href="matplotlib.pyplot.html">matplotlib.pyplot</a><br>
+<a href="sys.html">sys</a><br>
+</td><td width="25%" valign=top><a href="matplotlib.transforms.html">matplotlib.transforms</a><br>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="MarkovEquivalence.html#PossibleGraphicalGenerator">PossibleGraphicalGenerator</a>
+</font></dt></dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="PossibleGraphicalGenerator">class <strong>PossibleGraphicalGenerator</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Factory&nbsp;class&nbsp;for&nbsp;generating&nbsp;all&nbsp;possible&nbsp;valid&nbsp;DAGs&nbsp;for&nbsp;a&nbsp;given&nbsp;schema&nbsp;and&nbsp;set&nbsp;of&nbsp;constraints.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="PossibleGraphicalGenerator-__init__"><strong>__init__</strong></a>(self, entVars, indexVars<font color="#909090">=None</font>)</dt><dd><tt>Constructor.&nbsp;&nbsp;Accepts&nbsp;schema&nbsp;information&nbsp;as&nbsp;a&nbsp;list&nbsp;of&nbsp;(entity,&nbsp;variable)&nbsp;tuples.</tt></dd></dl>
+
+<dl><dt><a name="PossibleGraphicalGenerator-dumpEdgePossibleSettings"><strong>dumpEdgePossibleSettings</strong></a>(self)</dt><dd><tt>Debugging.</tt></dd></dl>
+
+<dl><dt><a name="PossibleGraphicalGenerator-edgeFix"><strong>edgeFix</strong></a>(self, s, t)</dt><dd><tt>Add&nbsp;a&nbsp;constraint&nbsp;that&nbsp;a&nbsp;given&nbsp;edge&nbsp;must&nbsp;exist&nbsp;in&nbsp;all&nbsp;DAGs&nbsp;generated.</tt></dd></dl>
+
+<dl><dt><a name="PossibleGraphicalGenerator-edgeProhibit"><strong>edgeProhibit</strong></a>(self, s, t, bidir<font color="#909090">=False</font>)</dt><dd><tt>Add&nbsp;a&nbsp;constraint&nbsp;that&nbsp;prohibits&nbsp;a&nbsp;given&nbsp;edge&nbsp;in&nbsp;all&nbsp;DAGs&nbsp;generated.</tt></dd></dl>
+
+<dl><dt><a name="PossibleGraphicalGenerator-edgeProhibitAll"><strong>edgeProhibitAll</strong></a>(self, s, bidir<font color="#909090">=False</font>)</dt><dd><tt>Add&nbsp;a&nbsp;constraint&nbsp;that&nbsp;prohibits&nbsp;all&nbsp;edges&nbsp;associated&nbsp;with&nbsp;a&nbsp;vertex.</tt></dd></dl>
+
+<dl><dt><a name="PossibleGraphicalGenerator-generate"><strong>generate</strong></a>(self)</dt><dd><tt>Workhorse&nbsp;factory&nbsp;method&nbsp;for&nbsp;producing&nbsp;all&nbsp;valid&nbsp;DAGs&nbsp;for&nbsp;this&nbsp;schema&nbsp;and&nbsp;set<br>
+of&nbsp;constraints.</tt></dd></dl>
+
+<dl><dt><a name="PossibleGraphicalGenerator-makeDetermines"><strong>makeDetermines</strong></a>(self, target, sources)</dt><dd><tt>Designate&nbsp;a&nbsp;variable&nbsp;as&nbsp;determinstic,&nbsp;thus&nbsp;affecting&nbsp;the&nbsp;outcome&nbsp;of&nbsp;different<br>
+conditional&nbsp;independence&nbsp;tests.</tt></dd></dl>
+
+<dl><dt><a name="PossibleGraphicalGenerator-makeLatent"><strong>makeLatent</strong></a>(self, n)</dt><dd><tt>Designate&nbsp;an&nbsp;edge&nbsp;as&nbsp;latent,&nbsp;which&nbsp;prevents&nbsp;it&nbsp;from&nbsp;being&nbsp;utilized&nbsp;in&nbsp;any<br>
+conditional&nbsp;independence&nbsp;tests&nbsp;used&nbsp;for&nbsp;partitioning&nbsp;DAGs&nbsp;into&nbsp;Markov&nbsp;equvalence<br>
+classes.</tt></dd></dl>
+
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-condIndy"><strong>condIndy</strong></a>(g, x, y, conds<font color="#909090">=[]</font>)</dt><dd><tt>Check&nbsp;the&nbsp;conditional&nbsp;independence&nbsp;of&nbsp;a&nbsp;given&nbsp;pair&nbsp;of&nbsp;variables.</tt></dd></dl>
+ <dl><dt><a name="-condIndys"><strong>condIndys</strong></a>(gDir)</dt><dd><tt>Return&nbsp;a&nbsp;list&nbsp;of&nbsp;independence&nbsp;relations&nbsp;for&nbsp;all&nbsp;measured&nbsp;variables&nbsp;in&nbsp;<br>
+the&nbsp;form&nbsp;of&nbsp;tuples:&nbsp;(s,&nbsp;t,&nbsp;condSet,&nbsp;isIndy)</tt></dd></dl>
+ <dl><dt><a name="-dconn"><strong>dconn</strong></a>(gDir, path, conds)</dt><dd><tt>Check&nbsp;whether&nbsp;the&nbsp;path&nbsp;d-connects&nbsp;start&nbsp;and&nbsp;end&nbsp;nodes.</tt></dd></dl>
+ <dl><dt><a name="-drawArrow"><strong>drawArrow</strong></a>(ax, coordsS, coordsT, head, shrink<font color="#909090">=0</font>, style<font color="#909090">='directed'</font>, width<font color="#909090">=1</font>)</dt><dd><tt>Given&nbsp;the&nbsp;coordinates&nbsp;of&nbsp;to&nbsp;variables,&nbsp;draw&nbsp;a&nbsp;causal&nbsp;edge&nbsp;between&nbsp;them.</tt></dd></dl>
+ <dl><dt><a name="-drawEntity"><strong>drawEntity</strong></a>(ax, x, y, rad, variables, latents<font color="#909090">=[]</font>, determined<font color="#909090">=[]</font>)</dt><dd><tt>Draw&nbsp;a&nbsp;single&nbsp;entity.&nbsp;Returns&nbsp;a&nbsp;dict&nbsp;containing&nbsp;x,y&nbsp;coordinates&nbsp;for&nbsp;each<br>
+variable&nbsp;(for&nbsp;use&nbsp;causal&nbsp;edge&nbsp;drawing).</tt></dd></dl>
+ <dl><dt><a name="-drawGraphical"><strong>drawGraphical</strong></a>(ax, x, y, graphical, shrink<font color="#909090">=1.0</font>, isDirected<font color="#909090">=True</font>, arrowWidth<font color="#909090">=1</font>)</dt><dd><tt>Draw&nbsp;a&nbsp;DAG.</tt></dd></dl>
+ <dl><dt><a name="-drawGraphicalEquivClasses"><strong>drawGraphicalEquivClasses</strong></a>(equivClasses, outfileName, rowsPerPage<font color="#909090">=4</font>, colsPerPage<font color="#909090">=4</font>, pageWidth<font color="#909090">=8.5</font>, pageHeight<font color="#909090">=11.0</font>)</dt><dd><tt>Draw&nbsp;the&nbsp;set&nbsp;of&nbsp;Markov&nbsp;equivalence&nbsp;classes.&nbsp;&nbsp;Each&nbsp;class&nbsp;is&nbsp;listed&nbsp;with&nbsp;a&nbsp;list&nbsp;of&nbsp;conditional<br>
+independence&nbsp;relationships&nbsp;as&nbsp;well&nbsp;as&nbsp;a&nbsp;summary&nbsp;graph&nbsp;for&nbsp;all&nbsp;DAGs&nbsp;in&nbsp;the&nbsp;class.</tt></dd></dl>
+ <dl><dt><a name="-extendPath"><strong>extendPath</strong></a>(g, path)</dt><dd><tt>Helper&nbsp;helper&nbsp;method&nbsp;for&nbsp;<a href="#-extendPaths">extendPaths</a>(),&nbsp;<a href="#-findAllPathsSingle">findAllPathsSingle</a>()</tt></dd></dl>
+ <dl><dt><a name="-extendPaths"><strong>extendPaths</strong></a>(g, paths)</dt><dd><tt>Helper&nbsp;method&nbsp;for&nbsp;<a href="#-findAllPathsSingle">findAllPathsSingle</a>()</tt></dd></dl>
+ <dl><dt><a name="-factorialDict"><strong>factorialDict</strong></a>(paramListDict)</dt><dd><tt>Returns&nbsp;list&nbsp;of&nbsp;dicts&nbsp;param&nbsp;-&gt;&nbsp;setting&nbsp;for&nbsp;all&nbsp;combinations&nbsp;of&nbsp;args</tt></dd></dl>
+ <dl><dt><a name="-factorialList"><strong>factorialList</strong></a>(*paramLists)</dt><dd><tt>Returns&nbsp;all&nbsp;possible&nbsp;combinations&nbsp;of&nbsp;the&nbsp;args&nbsp;given</tt></dd></dl>
+ <dl><dt><a name="-filterGraphicalEquivClasses"><strong>filterGraphicalEquivClasses</strong></a>(equivClasses, s, t, condSet, isIndy)</dt><dd><tt>Filter&nbsp;graphical&nbsp;equiv&nbsp;classes&nbsp;by&nbsp;the&nbsp;existence&nbsp;of&nbsp;a&nbsp;given&nbsp;relationship.</tt></dd></dl>
+ <dl><dt><a name="-findAllPaths"><strong>findAllPaths</strong></a>(gOrig, excludes<font color="#909090">=[]</font>)</dt><dd><tt>Exhaustively&nbsp;identify&nbsp;all&nbsp;paths&nbsp;from&nbsp;every&nbsp;node&nbsp;to&nbsp;every&nbsp;node&nbsp;within&nbsp;an&nbsp;undirected&nbsp;graph<br>
+and&nbsp;return&nbsp;as&nbsp;a&nbsp;list.</tt></dd></dl>
+ <dl><dt><a name="-findAllPathsSingle"><strong>findAllPathsSingle</strong></a>(gOrig, source, dest<font color="#909090">=None</font>, excludes<font color="#909090">=[]</font>)</dt><dd><tt>Get&nbsp;all&nbsp;paths&nbsp;from&nbsp;a&nbsp;single&nbsp;point&nbsp;of&nbsp;origin.</tt></dd></dl>
+ <dl><dt><a name="-getCommonGraph"><strong>getCommonGraph</strong></a>(graphicals)</dt><dd><tt>Calculate&nbsp;a&nbsp;"summary&nbsp;graph"&nbsp;for&nbsp;a&nbsp;set&nbsp;of&nbsp;DAGs.&nbsp;&nbsp;In&nbsp;the&nbsp;summary&nbsp;graph,&nbsp;each<br>
+edge&nbsp;is&nbsp;annotated&nbsp;to&nbsp;indicate&nbsp;whether&nbsp;it&nbsp;exists&nbsp;in&nbsp;all,&nbsp;some,&nbsp;or&nbsp;none&nbsp;of&nbsp;the<br>
+input&nbsp;DAGs.</tt></dd></dl>
+ <dl><dt><a name="-getGraphicalEquivClasses"><strong>getGraphicalEquivClasses</strong></a>(graphs, verbose<font color="#909090">=False</font>)</dt><dd><tt>Given&nbsp;a&nbsp;list&nbsp;of&nbsp;DAGs&nbsp;represented&nbsp;by&nbsp;networkx.DiGraph&nbsp;objects,&nbsp;calculate&nbsp;Markov<br>
+equivalence&nbsp;classes&nbsp;based&nbsp;on&nbsp;conditional&nbsp;independence&nbsp;tests.</tt></dd></dl>
+ <dl><dt><a name="-groundGraph"><strong>groundGraph</strong></a>(graphical, dataOrig, typeAttrName<font color="#909090">='type'</font>)</dt><dd><tt>From&nbsp;a&nbsp;directed&nbsp;graphical&nbsp;model&nbsp;and&nbsp;a(n)&nbsp;(un)directed&nbsp;data&nbsp;graph,&nbsp;produce&nbsp;a&nbsp;ground&nbsp;graph.</tt></dd></dl>
+ <dl><dt><a name="-indyTups2String"><strong>indyTups2String</strong></a>(indyTups, indyOnly<font color="#909090">=False</font>)</dt><dd><tt>Represent&nbsp;a&nbsp;set&nbsp;of&nbsp;conditional&nbsp;independence&nbsp;relationships&nbsp;as&nbsp;a&nbsp;formatted&nbsp;string.</tt></dd></dl>
+ <dl><dt><a name="-possibleBlocking"><strong>possibleBlocking</strong></a>(linksId<font color="#909090">=True</font>, latentZ<font color="#909090">=True</font>, indexId<font color="#909090">=True</font>)</dt></dl>
+ <dl><dt><a name="-possibleBlockingZH"><strong>possibleBlockingZH</strong></a>(linksId<font color="#909090">=True</font>, indexId<font color="#909090">=True</font>)</dt></dl>
+ <dl><dt><a name="-possibleManyMany"><strong>possibleManyMany</strong></a>()</dt></dl>
+ <dl><dt><a name="-possibleOneMany"><strong>possibleOneMany</strong></a>(latentZ<font color="#909090">=True</font>, indexId<font color="#909090">=True</font>)</dt></dl>
+ <dl><dt><a name="-possibleOneManyDegDisp"><strong>possibleOneManyDegDisp</strong></a>(undirDegFy<font color="#909090">=False</font>, latentDeg<font color="#909090">=False</font>)</dt></dl>
+ <dl><dt><a name="-possibleOneManyId"><strong>possibleOneManyId</strong></a>(latentZ<font color="#909090">=True</font>, latentId<font color="#909090">=False</font>, indexId<font color="#909090">=True</font>)</dt></dl>
+ <dl><dt><a name="-powerSet"><strong>powerSet</strong></a>(lstguy)</dt><dd><tt>Returns&nbsp;the&nbsp;powerset&nbsp;of&nbsp;list.&nbsp;&nbsp;Would&nbsp;be&nbsp;shorter&nbsp;in&nbsp;Scheme.</tt></dd></dl>
+ <dl><dt><a name="-romanize"><strong>romanize</strong></a>(n)</dt><dd><tt>Turns&nbsp;an&nbsp;integer&nbsp;into&nbsp;a&nbsp;Roman&nbsp;numeral.&nbsp;&nbsp;At&nbsp;what&nbsp;price&nbsp;beauty?</tt></dd></dl>
+</td></tr></table>
+</body></html>
