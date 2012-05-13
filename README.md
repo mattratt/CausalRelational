@@ -18,14 +18,15 @@ each vertex is a (entity, variable) tuple.
 For a bipartite graph with entity types A, B and variables A.X, A.Z, B.Y, usage would
 typically look like this: 
 
-varX = ("A", "X")
-varZ = ("A", "Z")
-varY = ("B", "Y")
-variables = [varX, varZ, varY]
-graphGen = PossibleGraphicalGenerator(variables)
-graphGen.edgeProhibit(varX, varZ, bidir=True)
-graphGen.makeLatent(varZ)
+    varX = ("A", "X")
+    varZ = ("A", "Z")
+    varY = ("B", "Y")
+    variables = [varX, varZ, varY]
+    
+    graphGen = PossibleGraphicalGenerator(variables)
+    graphGen.edgeProhibit(varX, varZ, bidir=True)
+    graphGen.makeLatent(varZ)
 
-possibleGraphs = graphGen.generate()
-equivClasses = getGraphicalEquivClasses(possibleGraphs, True)
-drawGraphicalEquivClasses(equivClasses, outfileName, rowsPerPage=20, colsPerPage=4, pageWidth=11.5, pageHeight=64)
+    possibleGraphs = graphGen.generate()
+    equivClasses = getGraphicalEquivClasses(possibleGraphs, True)
+    drawGraphicalEquivClasses(equivClasses, outfileName, rowsPerPage=20, colsPerPage=4, pageWidth=11.5, pageHeight=64)
